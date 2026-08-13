@@ -684,6 +684,55 @@
                             </div>
                         </div>
 
+                        <!-- Comparison Data Panel -->
+                        <div
+                            id="comparisonDataPanel"
+                            class="hidden mb-5 rounded-xl border border-slate-200 overflow-hidden"
+                        >
+                            <div
+                                class="bg-slate-50 px-4 py-2 border-b border-slate-200"
+                            >
+                                <span
+                                    class="text-xs font-semibold text-slate-600 uppercase tracking-wide"
+                                    >Video Data Comparison</span
+                                >
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table
+                                    class="w-full text-sm"
+                                >
+                                    <thead>
+                                        <tr class="border-b border-slate-200">
+                                            <th
+                                                class="text-left px-4 py-2 font-medium text-slate-400 text-xs"
+                                            >
+                                                Metric
+                                            </th>
+                                            <th
+                                                class="text-right px-4 py-2 font-medium text-slate-400 text-xs"
+                                            >
+                                                Original
+                                            </th>
+                                            <th
+                                                class="text-right px-4 py-2 font-medium text-slate-400 text-xs"
+                                            >
+                                                Upscaled
+                                            </th>
+                                            <th
+                                                class="text-right px-4 py-2 font-medium text-slate-400 text-xs"
+                                            >
+                                                Change
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody
+                                        id="comparisonDataBody"
+                                        class="divide-y divide-slate-100"
+                                    ></tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <!-- Action Buttons -->
                         <div class="flex gap-3">
                             <button
@@ -1647,6 +1696,97 @@
                     .join("");
             }
 
+            // Render the video data comparison table
+            function renderComparisonData(result, orig, enh) {
+                const panel = document.getElementById(
+                    "comparisonDataPanel",
+                );
+                const body = document.getElementById("comparisonDataBody");
+                if (!panel || !body) return;
+
+                const origBitrate =
+                    orig.duration > 0
+                        ? (orig.size * 8) / orig.duration / 1e6
+                        : 0;
+                const enhBitrate =
+                    enh.duration > 0
+                        ? (enh.size * 8) / enh.duration / 1e6
+                        : 0;
+                const origPixels = orig.width * orig.height;
+                const enhPixels = enh.width * enh.height;
+
+                const rows = [
+                    {
+                        label: "Resolution",
+                        orig: `${orig.width}×${orig.height}`,
+                        enh: `${enh.width}×${enh.height}`,
+                        change: `${((enhPixels / origPixels - 1) * 100).toFixed(0)}%`,
+                        positive: enhPixels > origPixels,
+                    },
+                    {
+                        label: "File Size",
+                        orig: formatBytes(orig.size),
+                        enh: formatBytes(enh.size),
+                        change: `${((enh.size / orig.size - 1) * 100).toFixed(0)}%`,
+                        positive: null,
+                    },
+                    {
+                        label: "Duration",
+                        orig: formatVideoDuration(orig.duration),
+                        enh: formatVideoDuration(enh.duration),
+                        change:
+                            Math.abs(orig.duration - enh.duration) < 0.5
+                                ? "same"
+                                : `${((enh.duration / orig.duration - 1) * 100).toFixed(1)}%`,
+                        positive: null,
+                    },
+                    {
+                        label: "Est. Bitrate",
+                        orig: origBitrate.toFixed(1) + " Mbps",
+                        enh: enhBitrate.toFixed(1) + " Mbps",
+                        change: `${((enhBitrate / origBitrate - 1) * 100).toFixed(0)}%`,
+                        positive: enhBitrate > origBitrate,
+                    },
+                    {
+                        label: "Pixels",
+                        orig: origPixels.toLocaleString(),
+                        enh: enhPixels.toLocaleString(),
+                        change: `${((enhPixels / origPixels - 1) * 100).toFixed(0)}%`,
+                        positive: enhPixels > origPixels,
+                    },
+                    {
+                        label: "Process Time",
+                        orig: "—",
+                        enh: formatDuration(result.durationMs),
+                        change: "—",
+                        positive: null,
+                    },
+                ];
+
+                body.innerHTML = rows
+                    .map((row) => {
+                        let changeClass = "text-slate-400";
+                        let changeIcon = "";
+                        if (row.positive === true) {
+                            changeClass = "text-emerald-600 font-medium";
+                            changeIcon = "↑ ";
+                        } else if (row.positive === false) {
+                            changeClass = "text-red-500";
+                            changeIcon = "↓ ";
+                        }
+                        return `
+                        <tr>
+                            <td class="px-4 py-2 text-slate-600 font-medium">${row.label}</td>
+                            <td class="px-4 py-2 text-right text-slate-500">${row.orig}</td>
+                            <td class="px-4 py-2 text-right text-slate-700 font-medium">${row.enh}</td>
+                            <td class="px-4 py-2 text-right ${changeClass}">${changeIcon}${row.change}</td>
+                        </tr>`;
+                    })
+                    .join("");
+
+                panel.classList.remove("hidden");
+            }
+
             // Load a result into the comparison viewer
             function loadResultIntoComparison(index) {
                 const result = batchResults[index];
@@ -1684,6 +1824,43 @@
                     formatDuration(result.durationMs);
                 document.getElementById("backendVideoInfo").textContent =
                     Upscaler.getBackendType();
+
+                // Render comparison data table once both videos' metadata loads
+                const origV = document.getElementById("resultVideoOriginal");
+                const enhV = document.getElementById("resultVideoEnhanced");
+                let origMeta = null;
+                let enhMeta = null;
+
+                const tryRender = () => {
+                    if (origMeta && enhMeta) {
+                        renderComparisonData(result, origMeta, enhMeta);
+                    }
+                };
+
+                const onOrigMeta = () => {
+                    origMeta = {
+                        width: origV.videoWidth,
+                        height: origV.videoHeight,
+                        duration: origV.duration,
+                        size: result.file.size,
+                    };
+                    origV.removeEventListener("loadedmetadata", onOrigMeta);
+                    tryRender();
+                };
+                const onEnhMeta = () => {
+                    enhMeta = {
+                        width: enhV.videoWidth,
+                        height: enhV.videoHeight,
+                        duration: enhV.duration,
+                        size: result.blob.size,
+                    };
+                    enhV.removeEventListener("loadedmetadata", onEnhMeta);
+                    tryRender();
+                };
+                if (origV.readyState >= 1) onOrigMeta();
+                else origV.addEventListener("loadedmetadata", onOrigMeta);
+                if (enhV.readyState >= 1) onEnhMeta();
+                else enhV.addEventListener("loadedmetadata", onEnhMeta);
 
                 const resultSection =
                     document.getElementById("resultSection");
@@ -1947,6 +2124,7 @@
                 selectedResultIndex = -1;
                 batchFileStatuses = [];
                 document.getElementById("batchResultPanel")?.classList.add("hidden");
+                document.getElementById("comparisonDataPanel")?.classList.add("hidden");
 
                 document.getElementById("processBtn").disabled = true;
                 document.getElementById("progressFill").style.width = "0%";
