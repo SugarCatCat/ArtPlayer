@@ -231,6 +231,7 @@
                                     class="w-full h-full object-contain pointer-events-none"
                                     muted
                                     playsinline
+                                    preload="metadata"
                                 ></video>
                                 <!-- Video Info Overlay -->
                                 <div
@@ -535,7 +536,7 @@
                                     loop
                                     muted
                                     playsinline
-                                    preload="auto"
+                                    preload="metadata"
                                 >
                                     <source
                                         id="resultVideoSourceEnhanced"
@@ -549,7 +550,7 @@
                                     class="comparison-img original absolute inset-0 w-full h-full bg-slate-900 object-contain"
                                     loop
                                     playsinline
-                                    preload="auto"
+                                    preload="metadata"
                                 >
                                     <source
                                         id="resultVideoSourceOriginal"
@@ -1131,6 +1132,7 @@
                 // Create new URL for the video
                 previewVideoUrl = URL.createObjectURL(file);
                 previewVideo.src = previewVideoUrl;
+                previewVideo.pause();
 
                 // Show preview area, hide placeholder
                 placeholder.classList.add("hidden");
@@ -1537,10 +1539,6 @@
                 showVideoPreview(file);
 
                 const retryStartTime = Date.now();
-                let lastSeekTime = 0;
-                const previewVideo = document.getElementById(
-                    "videoPreviewPlayer",
-                );
 
                 upscaler.onProgress((progress) => {
                     document.getElementById(
@@ -1549,12 +1547,6 @@
                     document.getElementById(
                         "progressText",
                     ).textContent = `[Retry] ${Math.round(progress)}% — ${truncateName(file.name)}`;
-                    const now = Date.now();
-                    const dur = previewVideo?.duration || 0;
-                    if (previewVideo && dur && now - lastSeekTime >= 1000) {
-                        lastSeekTime = now;
-                        previewVideo.currentTime = (progress / 100) * dur;
-                    }
                 });
 
                 try {
@@ -1804,20 +1796,6 @@
                             total > 1
                                 ? `${tag}${Math.round(progress)}% — ${truncateName(file.name)}`
                                 : `Processing... ${Math.round(progress)}%`;
-
-                        const now = Date.now();
-                        // Read duration lazily — it may not be available
-                        // immediately after showVideoPreview switches src
-                        const dur = previewVideo?.duration || 0;
-                        if (
-                            previewVideo &&
-                            dur &&
-                            now - lastSeekTime >= 1000
-                        ) {
-                            lastSeekTime = now;
-                            previewVideo.currentTime =
-                                (progress / 100) * dur;
-                        }
                     });
 
                     try {
