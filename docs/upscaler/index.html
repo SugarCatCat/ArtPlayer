@@ -684,55 +684,6 @@
                             </div>
                         </div>
 
-                        <!-- Comparison Data Panel -->
-                        <div
-                            id="comparisonDataPanel"
-                            class="hidden mb-5 rounded-xl border border-slate-200 overflow-hidden"
-                        >
-                            <div
-                                class="bg-slate-50 px-4 py-2 border-b border-slate-200"
-                            >
-                                <span
-                                    class="text-xs font-semibold text-slate-600 uppercase tracking-wide"
-                                    >Video Data Comparison</span
-                                >
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table
-                                    class="w-full text-sm"
-                                >
-                                    <thead>
-                                        <tr class="border-b border-slate-200">
-                                            <th
-                                                class="text-left px-4 py-2 font-medium text-slate-400 text-xs"
-                                            >
-                                                Metric
-                                            </th>
-                                            <th
-                                                class="text-right px-4 py-2 font-medium text-slate-400 text-xs"
-                                            >
-                                                Original
-                                            </th>
-                                            <th
-                                                class="text-right px-4 py-2 font-medium text-slate-400 text-xs"
-                                            >
-                                                Upscaled
-                                            </th>
-                                            <th
-                                                class="text-right px-4 py-2 font-medium text-slate-400 text-xs"
-                                            >
-                                                Change
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody
-                                        id="comparisonDataBody"
-                                        class="divide-y divide-slate-100"
-                                    ></tbody>
-                                </table>
-                            </div>
-                        </div>
-
                         <!-- Action Buttons -->
                         <div class="flex gap-3">
                             <button
@@ -807,6 +758,53 @@
                             </div>
                         </div>
                       </div>
+
+                        <!-- Comparison Data Panel (full width) -->
+                        <div
+                            id="comparisonDataPanel"
+                            class="hidden mt-5 rounded-xl border border-slate-200"
+                        >
+                            <div
+                                class="bg-slate-50 px-4 py-2 border-b border-slate-200"
+                            >
+                                <span
+                                    class="text-xs font-semibold text-slate-600 uppercase tracking-wide"
+                                    >Video Data Comparison</span
+                                >
+                            </div>
+                            <table
+                                class="w-full text-sm border-collapse"
+                            >
+                                <thead>
+                                    <tr class="border-b border-slate-200">
+                                        <th
+                                            class="text-left px-4 py-2 font-medium text-slate-400 text-xs"
+                                        >
+                                            Metric
+                                        </th>
+                                        <th
+                                            class="text-right px-4 py-2 font-medium text-slate-400 text-xs"
+                                        >
+                                            Original
+                                        </th>
+                                        <th
+                                            class="text-right px-4 py-2 font-medium text-slate-400 text-xs"
+                                        >
+                                            Upscaled
+                                        </th>
+                                        <th
+                                            class="text-right px-4 py-2 font-medium text-slate-400 text-xs"
+                                        >
+                                            Change
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody
+                                    id="comparisonDataBody"
+                                    class="divide-y divide-slate-100"
+                                ></tbody>
+                            </table>
+                        </div>
                     </div>
 
             <!-- Features Section for SEO -->
